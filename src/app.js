@@ -24,4 +24,10 @@ app.use(express.static("public"))
 // cookie browser se access and set krna
 app.use(cookieParser())
 
+
+// import routes
+import userRouter from './routes/user.routes.js'
+
+app.use("/api/v1/users",userRouter)
+
 export default app
