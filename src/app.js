@@ -15,7 +15,7 @@ app.use(express.json())
 
 
 // configration
-// url me %20 ya + aata h to use bhi axish do
+// url me %20 ya + aata h to useko bhi axish do
 app.use(express.urlencoded({extended:true}))
 
 // pdf ya file / folder ko store ko server me hi rakhna

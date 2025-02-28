@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+// jese hi app run ho envairment variable sabhi jagah axix ho paye
 dotenv.config();
 
 
