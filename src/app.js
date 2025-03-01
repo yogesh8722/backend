@@ -18,12 +18,11 @@ app.use(express.json())
 // url me %20 ya + aata h to useko bhi axish do
 app.use(express.urlencoded({extended:true}))
 
-// pdf ya file / folder ko store ko server me hi rakhna
-app.use(express.static("public"))
-
 // cookie browser se access and set krna
 app.use(cookieParser())
 
+// pdf ya file / folder ko store ko server me hi rakhna
+app.use(express.static("public"))
 
 // import routes
 import userRouter from './routes/user.routes.js'

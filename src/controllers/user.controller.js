@@ -4,6 +4,29 @@ import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import UploadOnCloudinary from "../utils/cloudinary.js";
 
+// acees token or refresh token genrate krne ke liye code start
+const generateAccessAndRefreshToken=async(userId)=>{
+   try {
+      const user=await User.findById(userId)
+      const accessToken=await user.generateAccessToken()
+      const refreshToken=await user.generateRefreshToken()
+
+      // console.log("accessToken",accessToken);
+      // console.log("refreshToken",refreshToken);
+      
+
+      user.refreshToken=refreshToken
+      await user.save({validateBeforeSave:false})
+
+      return {accessToken,refreshToken}
+   } catch (error) {
+      throw new ApiError(500,"Something went wrong while generating access and refresh token")
+   }
+}
+// acees token or refresh token genrate krne ke liye code end
+
+
+// register user
 const registerUser=asyncHandler(async(req,res)=>{
  
    // get user detail frontend
@@ -18,7 +41,7 @@ const registerUser=asyncHandler(async(req,res)=>{
 
    // get user detail frontend
    const {username,email,password,fullname}=req.body
-   console.log("username:",username,"email:",email,"password:",password,"fullname:",fullname);
+   // console.log("username:",username,"email:",email,"password:",password,"fullname:",fullname);
    
 
    // validation - not empty
@@ -40,12 +63,11 @@ const registerUser=asyncHandler(async(req,res)=>{
       throw new ApiError(409,"Username is already axist");
    }
 
-
    // check for images,upload multer ,check for avatar
 
    // routes ke andr ek middleware add kr diya h to req.body ki jagah aapko req.files ka access mil jata h
    const avatarLocalFilePath = req.files?.avatar[0]?.path;
-   console.log("avatarLocal:",avatarLocalFilePath);
+   // console.log("avatarLocal:",avatarLocalFilePath);
 
 // ise work nhi hoga error aaygi
    // const coverImageLocalFilePath = req.files?.coverImage[0]?.path;
@@ -68,7 +90,7 @@ const registerUser=asyncHandler(async(req,res)=>{
 
    const avatar=await UploadOnCloudinary(avatarLocalFilePath);
    const coverImage=await UploadOnCloudinary(coverImageLocalFilePath)
-console.log("avatar:",avatar);
+// console.log("avatar:",avatar);
 
    if(!avatar){
       throw new ApiError(400,"avatar file is required to");
@@ -100,4 +122,95 @@ console.log("avatar:",avatar);
 
 })
 
+
+// login user
+const loginUser=asyncHandler(async(req,res)=>{
+// req data 
+// username or email check
+//  database me store h ki nhi check
+// password check
+// acees token or refresh token genrate
+// send cookie
+// res
+
+// req data 
+const {username,email,password}=req.body
+// console.log("req.body",req.body);
+
+// console.log(username,email,password)
+
+// username or email check
+if (!username && !email) {
+   throw new ApiError(400, "Username or email is required");
+}
+
+//  database me store h ki nhi check
+const user = await User.findOne({
+   $or:[{username},{email}]
+})
+
+if(!user){
+   throw new ApiError(404,"username or email not axist")
+}
+
+// password check
+const passwordCorrect=await user.isPasswordCorrect(password)
+if(!passwordCorrect){
+   throw new ApiError(401,"invalid user credential")
+}
+
+// acees token or refresh token genrate
+const {accessToken,refreshToken} = await generateAccessAndRefreshToken(user._id)
+const loggedInUser=await User.findById(user._id).select("-password -refreshToken")
+
+
+// send cookie
+
+// frontend se cookie modify change nhi kr skte h 
+const options={
+   httpOnly: true,
+   secure: true
+}
+
+return res
+.status(200)
+.cookie("accessToken",accessToken,options)
+.cookie("refreshToken",refreshToken,options)
+.json(
+   new ApiResponse(
+      200,
+      { user:loggedInUser,accessToken,refreshToken },
+      "User LoggedIn Successfully"
+   )
+)
+})
+
+
+// logout user
+const logoutUser=asyncHandler(async(req,res)=>{
+
+   await User.findByIdAndUpdate(
+      req.user._id,
+      {
+         $set:{
+            refreshToken:undefined
+         }
+      },
+      {
+         new:true
+      }
+   )
+
+   const options={
+      httpOnly: true,
+      secure: true
+   }
+
+   return res.status(200)
+   .clearCookie("accessToken",options)
+   .clearCookie("refreshToken",options)
+   .json(new ApiResponse(200,{},"User Logout Successfully"))
+})
+
+export { loginUser,logoutUser }
 export default registerUser
