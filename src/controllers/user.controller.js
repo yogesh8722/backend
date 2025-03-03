@@ -24,8 +24,6 @@ const generateAccessAndRefreshToken=async(userId)=>{
       throw new ApiError(500,"Something went wrong while generating access and refresh token")
    }
 }
-// acees token or refresh token genrate krne ke liye code end
-
 
 // register user
 const registerUser=asyncHandler(async(req,res)=>{
@@ -123,7 +121,6 @@ const registerUser=asyncHandler(async(req,res)=>{
 
 })
 
-
 // login user
 const loginUser=asyncHandler(async(req,res)=>{
 // req data 
@@ -185,7 +182,6 @@ return res
    )
 )
 })
-
 
 // logout user
 const logoutUser=asyncHandler(async(req,res)=>{
@@ -266,13 +262,47 @@ return res
       "Access Token Refreshed Successfully"
    )
 )
-
-   // try {
-      
-   // } catch (error) {
-   //    throw new ApiError(401,"catch:",error?.message || "Invalid refresh token")
-   // }
 })
 
-export { loginUser,logoutUser,refreshAccessToken }
+const updatePassword=asyncHandler(async(req,res)=>{
+   // oldpassword and newpassword
+   // check old password correct
+   // newpassword save database
+
+   // oldpassword and newpassword
+   const {oldPassword,newPassword}=req.body
+   console.log("oldPassword",oldPassword);
+   
+   if(!oldPassword){
+      throw new ApiError(400,"old password filed is required")
+   }
+
+   // check old password correct
+  const user=await User.findById(req.user?._id)
+  console.log("user",user);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+  if(!isPasswordCorrect){
+   throw new ApiError(400,"user password is incorrected")
+  }
+  
+  // newpassword save database
+  user.password = newPassword
+  await user.save({validateBeforeSave:false})
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,{},"User Password is Updated"))
+
+})
+
+const getCurrentUser = asyncHandler(async(req,res)=>{
+   return res
+   .status(200)
+   .json(200,req.user,"current user fetch Successfully")
+})
+
+
+
+export { loginUser,logoutUser,refreshAccessToken,updatePassword,getCurrentUser }
 export default registerUser
