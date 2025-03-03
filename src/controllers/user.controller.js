@@ -271,7 +271,8 @@ const updatePassword = asyncHandler(async (req, res) => {
 
    // oldpassword and newpassword
    const { oldPassword, newPassword } = req.body
-   console.log("oldPassword", oldPassword);
+   // console.log("oldPassword", oldPassword);
+   // console.log("newPassword", newPassword);
 
    if (!oldPassword) {
       throw new ApiError(400, "old password filed is required")
@@ -279,8 +280,10 @@ const updatePassword = asyncHandler(async (req, res) => {
 
    // check old password correct
    const user = await User.findById(req.user?._id)
-   console.log("user", user);
+   // console.log("user", user);
    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+   // console.log("isPasswordCorrect",isPasswordCorrect);
+   
 
    if (!isPasswordCorrect) {
       throw new ApiError(400, "user password is incorrected")
