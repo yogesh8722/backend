@@ -312,6 +312,8 @@ const currentAccountUpdate = asyncHandler(async (req, res) => {
 
    // from data
    const { email, fullname } = req.body
+   console.log("email:",email,"fullname:",fullname);
+   
 
    // check filed is required
    if (!email || !fullname) {
@@ -328,8 +330,9 @@ const currentAccountUpdate = asyncHandler(async (req, res) => {
          }
       },
       { new: true } //update hone ke baad ki information return hoti h
-         .select("-password")
-   )
+   ).select("-password")
+   console.log("user",user);
+   
 
    return res
       .status(200)
